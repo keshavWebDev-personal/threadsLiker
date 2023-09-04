@@ -24,7 +24,6 @@ class Like {
                         return;
                     }
                     lastTimeStamp = timeStamp;
-                    console.log(timeStamp);
                     this.elem = document.querySelector('svg[aria-label="Like"]');
                     if (!this.elem) {
                         window.scrollTo({ top: document.body.scrollHeight, left: 0, behavior: "smooth" });
@@ -50,10 +49,12 @@ class LikeInterval {
     isrunning;
     intervalId;
     likeElem;
+    count;
     constructor() {
         this.isrunning = false;
         this.intervalId = null;
         this.likeElem = null;
+        this.count = 0;
     }
     start(minTime, maxTime) {
         this.isrunning = true;
@@ -62,6 +63,8 @@ class LikeInterval {
         this.intervalId = setTimeout(async () => {
             try {
                 const result = await this.likeElem?.do;
+                await chrome.runtime.sendMessage({ action: "Like done" });
+                this.count++;
                 this.start(minTime, maxTime);
             }
             catch (error) {
@@ -73,16 +76,16 @@ class LikeInterval {
     stop() {
         if (this.intervalId) {
             clearTimeout(this.intervalId);
-            this.isrunning = false;
         }
         if (this.likeElem?.rafId) {
             cancelAnimationFrame(this.likeElem.rafId);
-            this.isrunning = false;
         }
+        this.isrunning = false;
+        chrome.runtime.sendMessage({ info: "interval stopped" });
     }
 }
-const likeInterval = new LikeInterval();
-chrome.runtime.onMessage.addListener(msg => {
+let likeInterval = new LikeInterval();
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg && msg.action == "Start Likes") {
         if (!likeInterval.isrunning) {
             likeInterval.start(msg.minTime, msg.maxTime);
@@ -90,6 +93,10 @@ chrome.runtime.onMessage.addListener(msg => {
         }
         else {
             likeInterval.stop();
+            likeInterval = new LikeInterval();
         }
+    }
+    if (msg && msg.action == "Give current Likes Count") {
+        sendResponse({ data: likeInterval.count });
     }
 });
