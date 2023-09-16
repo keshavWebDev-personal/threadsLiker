@@ -1,9 +1,7 @@
 body{
-    width: 150px;
+    min-width: 150px;
     height: 200px;
     
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    display: grid;
+    place-items: center;
 }
