@@ -14,10 +14,10 @@
         "activeTab"
     ],
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "/dest/background.js"
     },
     "content_scripts": [{
-        "js": ["content.js"],
+        "js": ["/dest/content.js"],
         "matches": ["https://www.threads.net/*"]
     }]
 }
