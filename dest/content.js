@@ -63,7 +63,7 @@ class LikeInterval {
         this.intervalId = setTimeout(async () => {
             try {
                 const result = await this.likeElem?.do;
-                await chrome.runtime.sendMessage({ action: "Like done" });
+                chrome.runtime.sendMessage({ action: "Like done" });
                 this.count++;
                 this.start(minTime, maxTime);
             }

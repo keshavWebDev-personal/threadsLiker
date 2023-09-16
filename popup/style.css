@@ -1,7 +1,40 @@
-body{
-    min-width: 150px;
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+:root{
+    --primary-rgb: 46, 206, 255;
+    --colro: rgb(46, 206, 255);
+}
+
+* {
+    font-family: 'Poppins', sans-serif;
+
+}
+
+body {
+    width: 150px;
     height: 200px;
-    
     display: grid;
     place-items: center;
+    padding: 10px;
+}
+
+.container-input {
+    display: flex;
+
+}
+
+.input {
+    width: 50px;
+    text-align: center;
+}
+
+#likesCount {
+    display: grid;
+    place-items: center;
+    border: 3px solid rgba(var(--primary-rgb),0.9);
+    background-color: rgba(var(--primary-rgb),0.2);
+    width: 60px;
+    height: 30px;
+    border-radius: 5px;
+    font-size: large;
 }
