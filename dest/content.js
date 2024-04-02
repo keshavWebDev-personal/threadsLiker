@@ -96,7 +96,4 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             likeInterval = new LikeInterval();
         }
     }
-    if (msg && msg.action == "Give current Likes Count") {
-        sendResponse({ data: likeInterval.count });
-    }
 });

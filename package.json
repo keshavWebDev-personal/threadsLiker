@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/chrome": "^0.0.243",
+    "@types/chrome": "^0.0.263",
     "bun-types": "latest"
+  },
+  "dependencies": {
+    "typescript": "^5.4.3"
   }
 }
