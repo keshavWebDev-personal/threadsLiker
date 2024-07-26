@@ -15,5 +15,9 @@
     ],
     "icons": {
         "128": "threadsLiker_logo_128.png"
+    },
+    "background":{
+        "service-worker": "service-worker.js",
+        "type": "module"
     }
 }
