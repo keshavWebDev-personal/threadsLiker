@@ -1,59 +1,124 @@
 <script lang="ts">
-    let totalLikesCount = 0;
-    let likesLimit = 10
-    let taskRunning = false
+    let likesCount = 0;
+    let likesLimit = 50;
+    let taskRunning = false;
 
-    
-
-    function handleClick() {
-        if (taskRunning){
+    async function handleClick() {
+        if (taskRunning) {
             // A Message to Service Worker to Stop the Task Loop wiith
-            // Max time, Min Time, Likes Limit
-        }else{
+            chrome.runtime.sendMessage({
+                type: "action",
+                title: "Stop Likes",
+            });
+        } else {
             // A Messgae to Service WOrker to Start the Task Loop
+            // Max time, Min Time, Likes Limit
+            await chrome.runtime.sendMessage({
+                type: "action",
+                title: "Start Likes",
+                maxTime: 3000,
+                minTime: 1000,
+                likesLimit: likesLimit,
+            });
         }
 
         // Flipping the boolean
-        taskRunning = !taskRunning
-        console.log("Started");
+        taskRunning = !taskRunning;
     }
+    chrome.runtime.onMessage.addListener(({ type, title, ...data }) => {
+        // Data Related Messages
+        if (type === "data") {
+            if (title == "Like Count") {
+                likesCount = data.data;
+            } else if (title == "Target Like Reached") {
+                taskRunning = false;
+            }
+        }
+    });
 
-    // A Event Listner to Listen for Likes Limit Hit and flip the taskRunnig Bollean
-    
+    window.onload = () => {
+        chrome.runtime.sendMessage(
+            { type: "action", title: "Give me Likes" },
+            ({ likes }) => {
+                likesCount = likes;
+            }
+        );
+    };
 </script>
 
 <main
-    class=" bg-zinc-700/[0.4] h-full w-full flex flex-col items-center p-4 gap-6 "
+    class=" bg-zinc-700/[0.4] h-full w-full flex flex-col items-center p-4 gap-6"
 >
     <div class="stats shadow stats-vertical w-full">
         <div class="stat">
             <div class="stat-title">Total Likes</div>
-            <div class="stat-value relative ">
-                {totalLikesCount}
-                <div class:block={!taskRunning && totalLikesCount > 0} class:hidden={taskRunning || totalLikesCount == 0} class="stat-value top-0 absolute animate-ping text-success">{totalLikesCount}</div>
+            <div class="stat-value relative">
+                {likesCount}
+                <div
+                    class:block={!taskRunning && likesCount > 0}
+                    class:hidden={taskRunning || likesCount == 0}
+                    class="stat-value top-0 absolute animate-ping text-success"
+                >
+                    {likesCount}
+                </div>
             </div>
-            
+
             <div class="stat-desc">Today</div>
         </div>
 
         <div class="stat">
             <div class="stat-title">Status</div>
-            <div class="stat-value text-3xl" class:animate-pulse={taskRunning}  class:text-success={taskRunning} class:text-error={!taskRunning}>{taskRunning?"Running":"Stopped"}</div>
+            <div
+                class="stat-value text-3xl text-"
+                class:animate-pulse={taskRunning}
+                class:text-success={taskRunning}
+                class:text-info={!taskRunning}
+            >
+                {taskRunning ? "Working" : "Resting"}
+            </div>
             <div class="stat-desc">On Current Page</div>
         </div>
-
     </div>
 
-    <button type="button" class="btn capitalize " class:btn-error={taskRunning} class:btn-success={!taskRunning}  on:click={handleClick} >{taskRunning?"Stop":"Start"}</button>
+    <button
+        type="button"
+        class="btn capitalize"
+        class:btn-error={taskRunning}
+        class:btn-success={!taskRunning}
+        disabled={likesLimit <= likesCount}
+        on:click={handleClick}>
+        {taskRunning ? "Stop" : "Start"}
+    </button>
     <label class="form-control w-full max-w-xs">
         <div class="label">
             <span class="label-text">Likes Limit</span>
+            <div
+                class="badge badge-success gap-2 animate-pulse"
+                class:block={likesLimit <= likesCount}
+                class:hidden={likesLimit > likesCount}
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    class="inline-block h-4 w-4 stroke-current"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                </svg>
+                Reached
+            </div>
         </div>
         <input
             type="text"
             placeholder="Type here"
-            class="input input-bordered w-full max-w-xs"
+            class="input input-bordered w-full max-w-xs relative before:content-[''] before:size-full before:bg-green-300"
             bind:value={likesLimit}
+            disabled={taskRunning}
         />
     </label>
 </main>
