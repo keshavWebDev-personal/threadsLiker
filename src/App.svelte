@@ -60,11 +60,11 @@
         <div class="stat">
             <div class="stat-title">Total Likes</div>
             <div class="stat-value relative">
-                {likesCount}
+                <p class="z-10 relative" >{likesCount}</p>
                 <div
                     class:block={!taskRunning && likesCount > 0}
                     class:hidden={taskRunning || likesCount == 0 || likesCount < likesLimit}
-                    class="stat-value top-0 absolute animate-ping text-success"
+                    class="stat-value top-0 absolute animate-ping text-success z-0"
                 >
                     {likesCount}
                 </div>
