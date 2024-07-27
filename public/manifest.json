@@ -11,8 +11,7 @@
         "storage"
     ],
     "host_permissions": [
-        "https://*/*",
-        "http://*/*"
+        "https://www.threads.net/*"
     ],
     "icons": {
         "128": "threadsLiker_logo_128.png"
