@@ -11,9 +11,46 @@ chrome.storage.sync.get(['likesCount'], function({likesCount}) {
 function likeTaskLoop(maxTime: number, minTime: number, likesLimit: number) {
     let taskRunning = true
     let randTime = Math.floor(Math.random() * (maxTime - minTime) + minTime);
-    let timeOutId = setTimeout(() => {
-        let likeElem = document.querySelector('svg[aria-label="Like"]');
-        if (!likeElem) {
+    let timeOutId = setTimeout(async() => {
+        let likeElem = await getSVG();        
+        if (likeElem) {
+            likeElem.scrollIntoView({ behavior: "smooth" });
+            likeElem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+            chrome.runtime.sendMessage({
+                type: "data",
+                title: "Did a like",
+            });
+            likeTaskLoop(maxTime, minTime, likesLimit);
+        }else{
+            chrome.runtime.sendMessage({ type: "data", title: "reached end of page" });
+            taskRunning = false;
+        }
+    }, randTime);
+
+    chrome.runtime.onMessage.addListener(
+        ({ type, title, ...data }, _, sendResponse) => {
+            if (type == "action") {
+                if (title == "Stop Likes Task") {
+                    clearTimeout(timeOutId);
+                    taskRunning = false;
+                }   
+            }
+            if (type == "data") {
+                if (title == "give me task status") {
+                    sendResponse({
+                        taskRunning: taskRunning,
+                    });
+                }
+            }
+        }
+    );
+
+    let getSVG = (): Promise<SVGElement | null> => {
+        return new Promise((resolve) => {
+            let likeElem: SVGAElement | null = document.querySelector('svg[aria-label="Like"]');
+            if (likeElem) {resolve(likeElem); return;}
+
             let rafId = 0;
             let targetFPS: number = 1;
             let lastTimeStamp: number = 0;
@@ -35,43 +72,19 @@ function likeTaskLoop(maxTime: number, minTime: number, likesLimit: number) {
                         'svg[aria-label="Loading..."]'
                     );
                     if (!loadingElem) {
-                        return "reached End of page";
-                    } else {
-                        rafId = requestAnimationFrame(check);
+                        resolve(null);
+                        return;
                     }
+                    requestAnimationFrame(check);
+                } else {
+                    console.log("element Found!!");
+                    console.log(likeElem)
+                    resolve(likeElem);
                 }
             };
             requestAnimationFrame(check);
-        }
-        if (!likeElem) return;
-        likeElem.scrollIntoView({ behavior: "smooth" });
-        likeElem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-        chrome.runtime.sendMessage({
-            type: "data",
-            title: "Did a like",
         });
-
-        likeTaskLoop(maxTime, minTime, likesLimit);
-    }, randTime);
-
-    chrome.runtime.onMessage.addListener(
-        ({ type, title, ...data }, _, sendResponse) => {
-            if (type == "action") {
-                if (title == "Stop Likes Task") {
-                    clearTimeout(timeOutId);
-                    taskRunning = false;
-                }   
-            }
-            if (type == "data") {
-                if (title == "give me task status") {
-                    sendResponse({
-                        taskRunning: taskRunning,
-                    });
-                }
-            }
-        }
-    );
+    };
 }
 
 function stopAllLikeTasksLoops() {
