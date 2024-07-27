@@ -63,7 +63,7 @@
                 {likesCount}
                 <div
                     class:block={!taskRunning && likesCount > 0}
-                    class:hidden={taskRunning || likesCount == 0}
+                    class:hidden={taskRunning || likesCount == 0 || likesCount < likesLimit}
                     class="stat-value top-0 absolute animate-ping text-success"
                 >
                     {likesCount}
