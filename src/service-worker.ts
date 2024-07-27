@@ -34,6 +34,7 @@ function likeTaskLoop(maxTime: number, minTime: number, likesLimit: number) {
         }else{
             chrome.runtime.sendMessage({ type: "data", title: "reached end of page" });
             taskRunning = false;
+            clearTimeout(timeOutId);
         }
     }, randTime);
 
