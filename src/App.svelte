@@ -8,14 +8,14 @@
             // A Message to Service Worker to Stop the Task Loop wiith
             chrome.runtime.sendMessage({
                 type: "action",
-                title: "Stop Likes",
+                title: "Stop Liking",
             });
         } else {
             // A Messgae to Service WOrker to Start the Task Loop
             // Max time, Min Time, Likes Limit
             await chrome.runtime.sendMessage({
                 type: "action",
-                title: "Start Likes",
+                title: "Start Liking",
                 maxTime: 3000,
                 minTime: 1000,
                 likesLimit: likesLimit,
@@ -36,13 +36,17 @@
         }
     });
 
-    window.onload = () => {
-        chrome.runtime.sendMessage(
-            { type: "action", title: "Give me Likes" },
-            ({ likes }) => {
-                likesCount = likes;
-            }
-        );
+    window.onload = async () => {
+        const {likes} = await chrome.runtime.sendMessage({ type: "data", title: "give me state data" });
+        likesCount = likes;
+
+        let [tab] = await chrome.tabs.query({active: true})
+        if (!tab || !tab.id) { console.log("Tab not found"); return};
+        let res = await chrome.tabs.sendMessage(tab.id, {
+            type: "data",
+            title: "give me task status",
+        })
+        taskRunning = res.taskRunning
     };
 </script>
 
