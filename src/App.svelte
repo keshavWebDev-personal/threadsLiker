@@ -37,7 +37,7 @@
     });
 
     window.onload = async () => {
-        const {likes} = await chrome.runtime.sendMessage({ type: "data", title: "give me state data" });
+        const {likes} = await chrome.runtime.sendMessage({ type: "data", title: "give me likes count" });
         likesCount = likes;
 
         let [tab] = await chrome.tabs.query({active: true})

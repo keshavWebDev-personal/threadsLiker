@@ -136,7 +136,7 @@ chrome.runtime.onMessage.addListener(
                             sendTargetLikeReached_updateToPopup();
                         }
                         break;
-                    case "give me state data":
+                    case "give me likes count":
                         sendResponse({likes: totalLikesCount});
                         
                         break;
