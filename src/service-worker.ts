@@ -1,5 +1,12 @@
 let totalLikesCount = 0;
 let likesLimit = 0;
+chrome.storage.sync.get(['likesCount'], function({likesCount}) {
+    if (likesCount == undefined || likesCount.value == undefined) return
+    const timeDiff = Date.now() - likesCount.timestamp;
+    if (timeDiff > 1000 * 60 * 60 * 24) return
+    totalLikesCount = likesCount.value
+});
+
 
 function likeTaskLoop(maxTime: number, minTime: number, likesLimit: number) {
     let taskRunning = true
@@ -131,6 +138,14 @@ chrome.runtime.onMessage.addListener(
                             title: "Like Count",
                             data: totalLikesCount,
                         });
+                        // Store total likes count
+                        chrome.storage.sync.set({
+                            likesCount: {
+                                value: totalLikesCount,
+                                timestamp: Date.now(),
+                            }
+                        });
+
                         if (totalLikesCount >= likesLimit) {
                             stopAllLikeTasksLoops();
                             sendTargetLikeReached_updateToPopup();
