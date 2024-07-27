@@ -32,6 +32,9 @@
                 likesCount = data.data;
             } else if (title == "Target Like Reached") {
                 taskRunning = false;
+            }else if (title == "reached end of page") {
+                
+                taskRunning = false;
             }
         }
     });
