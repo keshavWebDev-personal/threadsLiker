@@ -1,10 +1,19 @@
 let totalLikesCount = 0;
 let likesLimit = 0;
-chrome.storage.sync.get(['likesCount'], function({likesCount}) {
-    if (likesCount == undefined || likesCount.value == undefined) return
-    const timeDiff = Date.now() - likesCount.timestamp;
-    if (timeDiff > 1000 * 60 * 60 * 24) return
-    totalLikesCount = likesCount.value
+
+chrome.storage.sync.get(['likesCount'], function({ likesCount }) {
+    if (!likesCount || likesCount.value === undefined) return;
+
+    const now = new Date();
+    const yesterday10PM = new Date(now);
+    yesterday10PM.setDate(now.getDate() - 1);
+    yesterday10PM.setHours(22, 0, 0, 0);
+
+    const today10PM = new Date(now);
+    today10PM.setHours(22, 0, 0, 0);
+
+    if (!(likesCount.timestamp >= yesterday10PM.getTime() && likesCount.timestamp <= today10PM.getTime())) return
+    totalLikesCount = likesCount.value;
 });
 
 
