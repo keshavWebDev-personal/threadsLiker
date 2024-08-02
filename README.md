@@ -17,8 +17,7 @@
 		- **Step 1** - look for three dots in the top right corner and click it
 		- **Step 2** - goto - Settings > Extension (In sidebar)
 		- **Step 3** - then, in the top right corner, click the button called "Developer mode"
-		- **Step 4** - then a some Buttons would appear. click the one called "Load Unpacked"
-		- **Step 5** - then locate and selected the FOLDER called "InstagramLiker"
+		- **Step 4** - then Drag the threadsLiker.zip anywhere on that window
 
 ### Done!
 
