@@ -10,12 +10,14 @@ function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
     let randTime = 0;
     let taskRunning = false;
     let timeOutId = 0;
+    let interId = 0
 
     chrome.runtime.onMessage.addListener(
         ({ type, title, ...data }, _, sendResponse) => {
             if (type == "action") {
                 if (title == "Stop Likes Task") {
                     clearTimeout(timeOutId);
+                    clearInterval(interId)
                     taskRunning = false;
                 }   
             }
@@ -35,7 +37,7 @@ function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
             if (likeElem) resolve(likeElem);
             
             let fps = 10
-            let interId = setInterval(() => {
+            interId = setInterval(() => {
                 likeElem = document.querySelector('svg[aria-label="Like"]');
                 if (!likeElem) {
                     window.scrollTo({
@@ -57,11 +59,10 @@ function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
     
     let likeTaskRecursive = async () => {
         try {
+            taskRunning = true;
             let likeElem = await getSVG();
             likeElem.scrollIntoView({ behavior: "smooth" });
             likeElem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    
-            taskRunning = true;
     
             chrome.runtime.sendMessage({
                 type: "data",
@@ -114,11 +115,6 @@ async function injectAutomaticLikerInCurrentPage(
     });
 }
 
-function sendTargetLikeReached_updateToPopup() {
-    chrome.runtime.sendMessage({ type: "data", title: "Target Like Reached" });
-}
-
-
 // -------------------------------------------------
 // -------------Main Event Listner------------------
 // -------------------------------------------------
@@ -159,7 +155,7 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
 
                         if (totalLikesCount >= likesLimit) {
                             stopAllLikeTasksLoops();
-                            sendTargetLikeReached_updateToPopup();
+                            chrome.runtime.sendMessage({ type: "data", title: "Target Like Reached" });
                         }
                         break;
                     case "give me likes count":
@@ -174,9 +170,9 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                             const today10PM = new Date(now);
                             today10PM.setHours(22, 0, 0, 0);
                             if (!( res.likesCount.timestamp >= yesterday10PM.getTime() && res.likesCount.timestamp <= today10PM.getTime() )){
-                                totalLikesCount = res.likesCount.value;
-                            }else{
                                 totalLikesCount = 0
+                            }else{
+                                totalLikesCount = res.likesCount.value;
                             };
                             sendResponse({ likes: totalLikesCount });
                         })();
