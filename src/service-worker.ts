@@ -1,7 +1,7 @@
 let totalLikesCount = 0;
 let likesLimit = 0;
 
-chrome.storage.sync.get(['likesCount'], function({ likesCount }) {
+chrome.storage.sync.get(["likesCount"], function ({ likesCount }) {
     if (!likesCount || likesCount.value === undefined) return;
 
     const now = new Date();
@@ -12,31 +12,20 @@ chrome.storage.sync.get(['likesCount'], function({ likesCount }) {
     const today10PM = new Date(now);
     today10PM.setHours(22, 0, 0, 0);
 
-    if (!(likesCount.timestamp >= yesterday10PM.getTime() && likesCount.timestamp <= today10PM.getTime())) return
+    if (
+        !(
+            likesCount.timestamp >= yesterday10PM.getTime() &&
+            likesCount.timestamp <= today10PM.getTime()
+        )
+    )
+        return;
     totalLikesCount = likesCount.value;
 });
 
-
-function likeTaskLoop(maxTime: number, minTime: number, likesLimit: number) {
-    let taskRunning = true
-    let randTime = Math.floor(Math.random() * (maxTime - minTime) + minTime);
-    let timeOutId = setTimeout(async() => {
-        let likeElem = await getSVG();        
-        if (likeElem) {
-            likeElem.scrollIntoView({ behavior: "smooth" });
-            likeElem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-            chrome.runtime.sendMessage({
-                type: "data",
-                title: "Did a like",
-            });
-            likeTaskLoop(maxTime, minTime, likesLimit);
-        }else{
-            chrome.runtime.sendMessage({ type: "data", title: "reached end of page" });
-            taskRunning = false;
-            clearTimeout(timeOutId);
-        }
-    }, randTime);
+function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
+    let randTime = 0;
+    let taskRunning = false;
+    let timeOutId = 0;
 
     chrome.runtime.onMessage.addListener(
         ({ type, title, ...data }, _, sendResponse) => {
@@ -56,45 +45,57 @@ function likeTaskLoop(maxTime: number, minTime: number, likesLimit: number) {
         }
     );
 
-    let getSVG = (): Promise<SVGElement | null> => {
-        return new Promise((resolve) => {
+    let getSVG = (): Promise<SVGElement> => {
+        return new Promise((resolve, reject) => {
             let likeElem: SVGAElement | null = document.querySelector('svg[aria-label="Like"]');
-            if (likeElem) {resolve(likeElem); return;}
-
-            let rafId = 0;
-            let targetFPS: number = 1;
-            let lastTimeStamp: number = 0;
-            let check = (timeStamp: number) => {
-                if (timeStamp - lastTimeStamp <= 1000 / targetFPS) {
-                    rafId = requestAnimationFrame(check);
-                    return;
-                }
-                lastTimeStamp = timeStamp;
-
+            if (likeElem) resolve(likeElem);
+            
+            let fps = 10
+            let interId = setInterval(() => {
                 likeElem = document.querySelector('svg[aria-label="Like"]');
                 if (!likeElem) {
                     window.scrollTo({
                         top: document.body.scrollHeight,
                         left: 0,
-                        behavior: "smooth",
                     });
-                    let loadingElem = document.querySelector(
-                        'svg[aria-label="Loading..."]'
-                    );
+                    let loadingElem = document.querySelector('svg[aria-label="Loading..."]');
                     if (!loadingElem) {
-                        resolve(null);
-                        return;
+                        reject("getSVG() :- Reached End of Page, So no more elemnt will be there");
+                        clearInterval(interId)
                     }
-                    requestAnimationFrame(check);
                 } else {
-                    console.log("element Found!!");
-                    console.log(likeElem)
                     resolve(likeElem);
+                    clearInterval(interId)
                 }
-            };
-            requestAnimationFrame(check);
+            }, 1000 / fps)
         });
     };
+    
+    let likeTaskRecursive = async () => {
+        try {
+            let likeElem = await getSVG();
+            likeElem.scrollIntoView({ behavior: "smooth" });
+            likeElem.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    
+            taskRunning = true;
+    
+            chrome.runtime.sendMessage({
+                type: "data",
+                title: "Did a like",
+            });
+    
+            randTime = Math.floor(Math.random() * (maxTime - minTime) + minTime);
+            timeOutId = setTimeout(likeTaskRecursive, randTime);
+        } catch (error) {
+            console.error("likeTaskRecursive() :- Error", error);
+            chrome.runtime.sendMessage({
+                type: "data",
+                title: "Reached end of page or no more likes available",
+            });
+            taskRunning = false;
+        }
+    };
+    likeTaskRecursive();
 }
 
 function stopAllLikeTasksLoops() {
@@ -124,7 +125,7 @@ async function injectAutomaticLikerInCurrentPage(
     if (!tab.id) return;
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: likeTaskLoop,
+        func: webPageContext,
         args: [maxTime, minTime, likesLimit],
     });
 }
@@ -149,7 +150,6 @@ chrome.runtime.onMessage.addListener(
                     case "Stop Liking":
                         stopAllLikeTasksLoops();
                         break;
-                    
                 }
                 break;
             case "data":
@@ -166,7 +166,7 @@ chrome.runtime.onMessage.addListener(
                             likesCount: {
                                 value: totalLikesCount,
                                 timestamp: Date.now(),
-                            }
+                            },
                         });
 
                         if (totalLikesCount >= likesLimit) {
@@ -175,8 +175,8 @@ chrome.runtime.onMessage.addListener(
                         }
                         break;
                     case "give me likes count":
-                        sendResponse({likes: totalLikesCount});
-                        
+                        sendResponse({ likes: totalLikesCount });
+
                         break;
                 }
                 break;
