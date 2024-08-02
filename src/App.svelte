@@ -93,7 +93,8 @@
         class:btn-error={taskRunning}
         class:btn-success={!taskRunning}
         disabled={likesLimit <= likesCount}
-        on:click={handleClick}>
+        on:click={handleClick}
+    >
         {taskRunning ? "Stop" : "Start"}
     </button>
     <label class="form-control w-full max-w-xs">
@@ -108,7 +109,7 @@
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
-                    class="inline-block h-4 w-4 stroke-current"
+                    class="inline-block h-4 w-4 stroke-current  " 
                 >
                     <path
                         stroke-linecap="round"
