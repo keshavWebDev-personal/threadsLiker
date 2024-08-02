@@ -49,10 +49,11 @@
         // Getting Task Status from the Current Tab
         let [tab] = await chrome.tabs.query({active: true})
         if (!tab || !tab.id) { console.log("Tab not found"); return};
-        let res = await chrome.tabs.sendMessage(tab.id, {type: "data", title: "give me task status",})
-        taskRunning = res.taskRunning
-
-
+        try {
+            let res = await chrome.tabs.sendMessage(tab.id, {type: "data", title: "give me task status",})
+            taskRunning = res.taskRunning
+        } catch (error) {
+        }
     };
 
     function onLikeLimitChange() {
