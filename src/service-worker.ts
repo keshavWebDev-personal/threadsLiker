@@ -2,34 +2,6 @@ let totalLikesCount = 0;
 let likesLimit = 0;
 
 // -------------------------------------------------
-//------------------Persistency---------------------
-// -------------------------------------------------
-
-chrome.storage.sync.get(["likesCount"], ({ likesCount })=>{
-    if (!likesCount || likesCount.value === undefined) return;
-
-    const now = new Date();
-    const yesterday10PM = new Date(now);
-    yesterday10PM.setDate(now.getDate() - 1);
-    yesterday10PM.setHours(22, 0, 0, 0);
-
-    const today10PM = new Date(now);
-    today10PM.setHours(22, 0, 0, 0);
-
-    if (
-        !(
-            likesCount.timestamp >= yesterday10PM.getTime() &&
-            likesCount.timestamp <= today10PM.getTime()
-        )
-    )
-        return;
-    totalLikesCount = likesCount.value;
-});
-chrome.storage.sync.get(["likesLimit"], (res)=>{
-    if (!res.likesLimit || res.likesLimit.value === undefined) {likesLimit = 0; return};
-    likesLimit = res.likesLimit.value;
-});
-// -------------------------------------------------
 // ------------------Some Functions-----------------
 // -------------------------------------------------
 
@@ -151,8 +123,7 @@ function sendTargetLikeReached_updateToPopup() {
 // -------------Main Event Listner------------------
 // -------------------------------------------------
 
-chrome.runtime.onMessage.addListener(
-    async ({ type, title, ...data }, _, sendResponse) => {
+chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse) => {
         switch (type) {
             case "action":
                 switch (title) {
@@ -192,7 +163,24 @@ chrome.runtime.onMessage.addListener(
                         }
                         break;
                     case "give me likes count":
-                        sendResponse({ likes: totalLikesCount });
+                        (async () => {
+                            let res = await chrome.storage.sync.get(["likesCount"]);
+                            if (!res.likesCount || res.likesCount.value === undefined) return;
+                            const now = new Date();
+                            const yesterday10PM = new Date(now);
+                            yesterday10PM.setDate(now.getDate() - 1);
+                            yesterday10PM.setHours(22, 0, 0, 0);
+                        
+                            const today10PM = new Date(now);
+                            today10PM.setHours(22, 0, 0, 0);
+                            if (!(
+                                    res.likesCount.timestamp >= yesterday10PM.getTime() &&
+                                    res.likesCount.timestamp <= today10PM.getTime()
+                                )) return;
+                            totalLikesCount = res.likesCount.value;
+                            sendResponse({ likes: totalLikesCount });
+                        })();
+                        return true;
                         break;
 
                     case "Updated Likes Limit":
@@ -203,7 +191,13 @@ chrome.runtime.onMessage.addListener(
                             },
                         });
                     case "give me likes limit":
-                        sendResponse({ likesLimit: likesLimit });
+                        (async () => {
+                            let res = await chrome.storage.sync.get(["likesLimit"]);
+                            if (!res.likesLimit || res.likesLimit.value === undefined) {likesLimit = 0};
+                            likesLimit = res.likesLimit.value;            
+                            sendResponse({likesLimit: likesLimit});
+                        })();
+                        return true;
                         break;
                 }
                 break;
