@@ -1,7 +1,11 @@
 let totalLikesCount = 0;
 let likesLimit = 0;
 
-chrome.storage.sync.get(["likesCount"], function ({ likesCount }) {
+// -------------------------------------------------
+//------------------Persistency---------------------
+// -------------------------------------------------
+
+chrome.storage.sync.get(["likesCount"], ({ likesCount })=>{
     if (!likesCount || likesCount.value === undefined) return;
 
     const now = new Date();
@@ -21,6 +25,14 @@ chrome.storage.sync.get(["likesCount"], function ({ likesCount }) {
         return;
     totalLikesCount = likesCount.value;
 });
+chrome.storage.sync.get(["likesLimit"], (res)=>{
+    if (!res.likesLimit || res.likesLimit.value === undefined) {likesLimit = 0; return};
+    likesLimit = res.likesLimit.value;
+});
+// -------------------------------------------------
+// ------------------Some Functions-----------------
+// -------------------------------------------------
+
 
 function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
     let randTime = 0;
@@ -134,6 +146,11 @@ function sendTargetLikeReached_updateToPopup() {
     chrome.runtime.sendMessage({ type: "data", title: "Target Like Reached" });
 }
 
+
+// -------------------------------------------------
+// -------------Main Event Listner------------------
+// -------------------------------------------------
+
 chrome.runtime.onMessage.addListener(
     async ({ type, title, ...data }, _, sendResponse) => {
         switch (type) {
@@ -176,7 +193,17 @@ chrome.runtime.onMessage.addListener(
                         break;
                     case "give me likes count":
                         sendResponse({ likes: totalLikesCount });
+                        break;
 
+                    case "Updated Likes Limit":
+                        likesLimit = data.likesLimit
+                        chrome.storage.sync.set({
+                            likesLimit: {
+                                value: likesLimit
+                            },
+                        });
+                    case "give me likes limit":
+                        sendResponse({ likesLimit: likesLimit });
                         break;
                 }
                 break;
