@@ -173,11 +173,11 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                         
                             const today10PM = new Date(now);
                             today10PM.setHours(22, 0, 0, 0);
-                            if (!(
-                                    res.likesCount.timestamp >= yesterday10PM.getTime() &&
-                                    res.likesCount.timestamp <= today10PM.getTime()
-                                )) return;
-                            totalLikesCount = res.likesCount.value;
+                            if (!( res.likesCount.timestamp >= yesterday10PM.getTime() && res.likesCount.timestamp <= today10PM.getTime() )){
+                                totalLikesCount = res.likesCount.value;
+                            }else{
+                                totalLikesCount = 0
+                            };
                             sendResponse({ likes: totalLikesCount });
                         })();
                         return true;
