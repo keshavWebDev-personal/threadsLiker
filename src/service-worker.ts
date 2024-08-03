@@ -6,27 +6,37 @@ let likesLimit = 0;
 // -------------------------------------------------
 
 
-function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
+function webPageContext() {
     let randTime = 0;
     let taskRunning = false;
     let timeOutId = 0;
     let interId = 0
-
+    console.log("Succesfull in running");
+    
     chrome.runtime.onMessage.addListener(
         ({ type, title, ...data }, _, sendResponse) => {
-            if (type == "action") {
-                if (title == "Stop Likes Task") {
-                    clearTimeout(timeOutId);
-                    clearInterval(interId)
-                    taskRunning = false;
-                }   
-            }
-            if (type == "data") {
-                if (title == "give me task status") {
-                    sendResponse({
-                        taskRunning: taskRunning,
-                    });
-                }
+            switch (type) {
+                case "action":
+                    switch (title) {
+                        case "Stop Likes Task":
+                            clearTimeout(timeOutId);
+                            clearInterval(interId)
+                            taskRunning = false;
+                            break;
+                        case "Start Liking":
+                            likeTaskRecursive(data.maxTime, data.minTime, data.likesLimit);
+                            break
+                    }
+                    break;
+                case "data":
+                    switch (title) {
+                        case "give me task status":
+                            sendResponse({
+                                taskRunning: taskRunning,
+                            });
+                            break;
+                    }
+                    break;
             }
         }
     );
@@ -57,7 +67,7 @@ function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
         });
     };
     
-    let likeTaskRecursive = async () => {
+    let likeTaskRecursive = async (maxTime: number, minTime: number, likesLimit: number) => {
         try {
             taskRunning = true;
             let likeElem = await getSVG();
@@ -80,8 +90,9 @@ function webPageContext(maxTime: number, minTime: number, likesLimit: number) {
             taskRunning = false;
         }
     };
-    likeTaskRecursive();
 }
+
+
 
 function stopAllLikeTasksLoops() {
     const manifest = chrome.runtime.getManifest();
@@ -101,18 +112,14 @@ function stopAllLikeTasksLoops() {
     }
 }
 
-async function injectAutomaticLikerInCurrentPage(
+async function startLiking_currPage(
     maxTime: number,
     minTime: number,
     likesLimit: number
 ) {
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab.id) return;
-    chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: webPageContext,
-        args: [maxTime, minTime, likesLimit],
-    });
+    if (!tab.id) return
+    chrome.tabs.sendMessage(tab.id, {type: "action", title: "Start Liking",})
 }
 
 // -------------------------------------------------
@@ -124,8 +131,7 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
             case "action":
                 switch (title) {
                     case "Start Liking":
-                        likesLimit = data.likesLimit;
-                        injectAutomaticLikerInCurrentPage(
+                        startLiking_currPage(
                             data.maxTime,
                             data.minTime,
                             likesLimit
@@ -134,6 +140,20 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                     case "Stop Liking":
                         stopAllLikeTasksLoops();
                         break;
+                    case "setup webpage context":
+                        (async () => {
+                            let tabs = await chrome.tabs.query({});
+                            tabs.forEach((tab) => {
+                                console.log(tab.url);
+                                if (tab.id && tab.url?.match("www.threads.net")){
+                                    chrome.scripting.executeScript({
+                                        target: { tabId: tab.id },
+                                        func: webPageContext,
+                                    });
+                                }
+                            })
+                        })()
+                        break
                 }
                 break;
             case "data":

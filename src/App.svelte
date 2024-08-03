@@ -40,6 +40,9 @@
     });
 
     window.onload = async () => {
+        // Setup the Webpage Context
+        await chrome.runtime.sendMessage({ type: "action", title: "setup webpage context" });
+
         // Getting Likes Count and Likes Limit from Service Worker
         const res1 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes count" });
         const res2 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes limit" });
@@ -54,6 +57,7 @@
             taskRunning = res.taskRunning
         } catch (error) {
         }
+
     };
 
     function onLikeLimitChange() {
