@@ -85,7 +85,7 @@ function webPageContext() {
             console.error("likeTaskRecursive() :- Error", error);
             chrome.runtime.sendMessage({
                 type: "data",
-                title: "Reached end of page or no more likes available",
+                title: "reached end of page",
             });
             taskRunning = false;
         }
