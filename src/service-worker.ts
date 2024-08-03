@@ -181,18 +181,21 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                     case "give me likes count":
                         (async () => {
                             let res = await chrome.storage.sync.get(["likesCount"]);
-                            if (!res.likesCount || res.likesCount.value === undefined) return;
-                            const now = new Date();
-                            const yesterday10PM = new Date(now);
-                            yesterday10PM.setDate(now.getDate() - 1);
-                            yesterday10PM.setHours(22, 0, 0, 0);
-                        
-                            const today10PM = new Date(now);
-                            today10PM.setHours(22, 0, 0, 0);
-                            if (!( res.likesCount.timestamp >= yesterday10PM.getTime() && res.likesCount.timestamp <= today10PM.getTime() )){
+                            if (!res.likesCount || res.likesCount.value === undefined) {
                                 totalLikesCount = 0
                             }else{
-                                totalLikesCount = res.likesCount.value;
+                                const now = new Date();
+                                const yesterday10PM = new Date(now);
+                                yesterday10PM.setDate(now.getDate() - 1);
+                                yesterday10PM.setHours(22, 0, 0, 0);
+                            
+                                const today10PM = new Date(now);
+                                today10PM.setHours(22, 0, 0, 0);
+                                if (!( res.likesCount.timestamp >= yesterday10PM.getTime() && res.likesCount.timestamp <= today10PM.getTime() )){
+                                    totalLikesCount = 0
+                                }else{
+                                    totalLikesCount = res.likesCount.value;
+                                };
                             };
                             sendResponse({ likes: totalLikesCount });
                         })();
