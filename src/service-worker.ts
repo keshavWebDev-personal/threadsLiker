@@ -144,8 +144,8 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                         (async () => {
                             let tabs = await chrome.tabs.query({});
                             tabs.forEach((tab) => {
-                                console.log(tab.url);
-                                if (tab.id && tab.url?.match("www.threads.net")){
+                                const {host_permissions} = chrome.runtime.getManifest();
+                                if (tab.id && tab.url?.match(host_permissions[0])){
                                     chrome.scripting.executeScript({
                                         target: { tabId: tab.id },
                                         func: webPageContext,
