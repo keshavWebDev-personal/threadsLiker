@@ -12,34 +12,6 @@ function webPageContext() {
     let timeOutId = 0;
     let interId = 0
     console.log("Succesfull in running");
-    
-    chrome.runtime.onMessage.addListener(
-        ({ type, title, ...data }, _, sendResponse) => {
-            switch (type) {
-                case "action":
-                    switch (title) {
-                        case "Stop Likes Task":
-                            clearTimeout(timeOutId);
-                            clearInterval(interId)
-                            taskRunning = false;
-                            break;
-                        case "Start Liking":
-                            likeTaskRecursive(data.maxTime, data.minTime, data.likesLimit);
-                            break
-                    }
-                    break;
-                case "data":
-                    switch (title) {
-                        case "give me task status":
-                            sendResponse({
-                                taskRunning: taskRunning,
-                            });
-                            break;
-                    }
-                    break;
-            }
-        }
-    );
 
     let getSVG = (): Promise<SVGElement> => {
         return new Promise((resolve, reject) => {
@@ -90,6 +62,39 @@ function webPageContext() {
             taskRunning = false;
         }
     };
+
+    chrome.runtime.onMessage.addListener(
+        ({ type, title, ...data }, _, sendResponse) => {
+            switch (type) {
+                case "action":
+                    switch (title) {
+                        case "Stop Likes Task":
+                            clearTimeout(timeOutId);
+                            clearInterval(interId)
+                            taskRunning = false;
+                            break;
+                        case "Start Liking":
+                            try {
+                                likeTaskRecursive(data.maxTime, data.minTime, data.likesLimit);
+                                sendResponse({ status: true})
+                            } catch (error) {
+                                sendResponse({ status: false})
+                            }
+                            break
+                    }
+                    break;
+                case "data":
+                    switch (title) {
+                        case "give me task status":
+                            sendResponse({
+                                taskRunning: taskRunning,
+                            });
+                            break;
+                    }
+                    break;
+            }
+        }
+    );
 }
 
 
