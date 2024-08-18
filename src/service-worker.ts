@@ -11,7 +11,6 @@ function webPageContext() {
     let taskRunning = false;
     let timeOutId = 0;
     let interId = 0
-    console.log("Succesfull in running");
 
     let getSVG = (): Promise<SVGElement> => {
         return new Promise((resolve, reject) => {
@@ -39,7 +38,7 @@ function webPageContext() {
         });
     };
     
-    let likeTaskRecursive = async (maxTime: number, minTime: number, likesLimit: number) => {
+    async function likeTaskRecursive (maxTime: number, minTime: number) {
         try {
             taskRunning = true;
             let likeElem = await getSVG();
@@ -52,7 +51,11 @@ function webPageContext() {
             });
     
             randTime = Math.floor(Math.random() * (maxTime - minTime) + minTime);
-            timeOutId = setTimeout(likeTaskRecursive, randTime);
+            console.log(randTime, maxTime, minTime);
+            
+            timeOutId = setTimeout(()=>{
+                likeTaskRecursive(maxTime, minTime);
+            }, randTime);
         } catch (error) {
             console.error("likeTaskRecursive() :- Error", error);
             chrome.runtime.sendMessage({
@@ -61,7 +64,7 @@ function webPageContext() {
             });
             taskRunning = false;
         }
-    };
+    }
 
     chrome.runtime.onMessage.addListener(
         ({ type, title, ...data }, _, sendResponse) => {
@@ -74,12 +77,7 @@ function webPageContext() {
                             taskRunning = false;
                             break;
                         case "Start Liking":
-                            try {
-                                likeTaskRecursive(data.maxTime, data.minTime, data.likesLimit);
-                                sendResponse({ status: true})
-                            } catch (error) {
-                                sendResponse({ status: false})
-                            }
+                            likeTaskRecursive(data.maxTime, data.minTime);
                             break
                     }
                     break;
@@ -120,11 +118,10 @@ function stopAllLikeTasksLoops() {
 async function startLiking_currPage(
     maxTime: number,
     minTime: number,
-    likesLimit: number
 ) {
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab.id) return
-    chrome.tabs.sendMessage(tab.id, {type: "action", title: "Start Liking",})
+    chrome.tabs.sendMessage(tab.id, {type: "action", title: "Start Liking",maxTime: maxTime, minTime: minTime});
 }
 
 // -------------------------------------------------
@@ -136,11 +133,8 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
             case "action":
                 switch (title) {
                     case "Start Liking":
-                        startLiking_currPage(
-                            data.maxTime,
-                            data.minTime,
-                            likesLimit
-                        );
+                        startLiking_currPage( data.maxTime, data.minTime);
+                        likesLimit = data.likesLimit
                         break;
                     case "Stop Liking":
                         stopAllLikeTasksLoops();
@@ -171,6 +165,7 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                             data: totalLikesCount,
                         });
                         // Store total likes count
+                        
                         chrome.storage.sync.set({
                             likesCount: {
                                 value: totalLikesCount,
@@ -185,24 +180,33 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                         break;
                     case "give me likes count":
                         (async () => {
-                            let res = await chrome.storage.sync.get(["likesCount"]);
-                            if (!res.likesCount || res.likesCount.value === undefined) {
-                                totalLikesCount = 0
-                            }else{
-                                const now = new Date();
-                                const yesterday10PM = new Date(now);
-                                yesterday10PM.setDate(now.getDate() - 1);
-                                yesterday10PM.setHours(22, 0, 0, 0);
-                            
-                                const today10PM = new Date(now);
-                                today10PM.setHours(22, 0, 0, 0);
-                                if (!( res.likesCount.timestamp >= yesterday10PM.getTime() && res.likesCount.timestamp <= today10PM.getTime() )){
+                            try {
+                                let res = await chrome.storage.sync.get(["likesCount"]);
+                                
+                                if (!res.likesCount || res.likesCount.value === undefined) {
                                     totalLikesCount = 0
                                 }else{
-                                    totalLikesCount = res.likesCount.value;
+                                    const now = new Date();
+                                    const yesterday10PM = new Date(now);
+                                    yesterday10PM.setDate(now.getDate() - 1);
+                                    yesterday10PM.setHours(22, 0, 0, 0);
+                                    const today10PM = new Date(now);
+                                    today10PM.setHours(22, 0, 0, 0);
+
+                                    if (
+                                        (today10PM.getTime() <= now.getTime() && res.likesCount.timestamp > today10PM.getTime()) || //If todays 10 Pm is Happened and Last Like was done after todays 10pm
+                                        (today10PM.getTime() > now.getTime() && res.likesCount.timestamp > yesterday10PM.getTime()) //If not todays 10 Pm is Happened and Last Like was done after yesterdays 10pm
+                                    ) {
+                                        totalLikesCount = res.likesCount.value;
+                                    }else{
+                                        totalLikesCount = 0
+                                    }
                                 };
-                            };
-                            sendResponse({ likes: totalLikesCount });
+                                sendResponse({ likes: totalLikesCount });
+                            } catch (error) {
+                                sendResponse({ failed: true})
+                            }
+
                         })();
                         return true;
                         break;
@@ -216,10 +220,13 @@ chrome.runtime.onMessage.addListener(({ type, title, ...data }, _, sendResponse)
                         });
                     case "give me likes limit":
                         (async () => {
-                            let res = await chrome.storage.sync.get(["likesLimit"]);
-                            if (!res.likesLimit || res.likesLimit.value === undefined) {likesLimit = 0};
-                            likesLimit = res.likesLimit.value;            
-                            sendResponse({likesLimit: likesLimit});
+                            try {
+                                let res = await chrome.storage.sync.get(["likesLimit"]);
+                                likesLimit = res.likesLimit.value;            
+                                sendResponse({likesLimit: likesLimit});
+                            } catch (error) {
+                                sendResponse({ failed: true})
+                            }
                         })();
                         return true;
                         break;
