@@ -13,7 +13,7 @@
         } else {
             // A Messgae to Service WOrker to Start the Task Loop
             // Max time, Min Time, Likes Limit
-            await chrome.runtime.sendMessage({
+            chrome.runtime.sendMessage({
                 type: "action",
                 title: "Start Liking",
                 maxTime: 3000,
@@ -33,7 +33,6 @@
             } else if (title == "Target Like Reached") {
                 taskRunning = false;
             }else if (title == "reached end of page") {
-                
                 taskRunning = false;
             }
         }
@@ -46,6 +45,7 @@
         // Getting Likes Count and Likes Limit from Service Worker
         const res1 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes count" });
         const res2 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes limit" });
+        if (res1.failed || res2.failed) return
         likesCount = res1.likes;
         likesLimit = res2.likesLimit
         
