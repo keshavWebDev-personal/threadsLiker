@@ -8,7 +8,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: 'index.html',
-        'service-worker': 'src/service-worker.ts',
+        'service-worker': 'src/shared-service-worker/service-worker.ts',
       },
       output: {
         entryFileNames: (chunkInfo) => {

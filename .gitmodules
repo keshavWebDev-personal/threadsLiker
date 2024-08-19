@@ -1,0 +1,3 @@
+[submodule "src/shared-service-worker"]
+	path = src/shared-service-worker
+	url = https://github.com/keshavWebDev-personal/social-media-liker-service-worker.git
