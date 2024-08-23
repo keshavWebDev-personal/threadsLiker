@@ -43,8 +43,6 @@ function webpageContext() {
             });
     
             randTime = Math.floor(Math.random() * (maxTime - minTime) + minTime);
-            console.log(randTime, maxTime, minTime);
-            
             timeOutId = setTimeout(()=>{
                 likeTaskRecursive(maxTime, minTime);
             }, randTime);
@@ -60,28 +58,28 @@ function webpageContext() {
 
     chrome.runtime.onMessage.addListener(
         ({ type, title, ...data }, _, sendResponse) => {
-            switch (type) {
-                case "action":
-                    switch (title) {
-                        case "Stop Likes Task":
-                            clearTimeout(timeOutId);
-                            clearInterval(interId)
-                            taskRunning = false;
-                            break;
-                        case "Start Liking":
-                            likeTaskRecursive(data.maxTime, data.minTime);
-                            break
-                    }
-                    break;
-                case "data":
-                    switch (title) {
-                        case "give me task status":
-                            sendResponse({
-                                taskRunning: taskRunning,
-                            });
-                            break;
-                    }
-                    break;
+        switch (type) {
+            case "action":
+                switch (title) {
+                    case "Stop Likes Task":
+                        clearTimeout(timeOutId);
+                        clearInterval(interId)
+                        taskRunning = false;
+                        break;
+                    case "Start Liking":
+                        likeTaskRecursive(data.maxTime, data.minTime);
+                        break
+                }
+                break;
+            case "data":
+                switch (title) {
+                    case "give me task status":
+                        sendResponse({
+                            taskRunning: taskRunning,
+                        });
+                        break;
+                }
+                break;
             }
         }
     );
