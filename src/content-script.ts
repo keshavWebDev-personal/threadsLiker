@@ -1,4 +1,4 @@
-export function webpageContext() {
+function webpageContext() {
     let randTime = 0;
     let taskRunning = false;
     let timeOutId = 0;
@@ -86,3 +86,4 @@ export function webpageContext() {
         }
     );
 }
+webpageContext()

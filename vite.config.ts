@@ -9,10 +9,14 @@ export default defineConfig({
       input: {
         main: 'index.html',
         'service-worker': 'src/shared-service-worker/service-worker.ts',
+        'content-script': 'src/content-script.ts',
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          return chunkInfo.name === 'service-worker' ? '[name].js' : 'assets/[name]-[hash].js';
+          if (chunkInfo.name === 'service-worker' || chunkInfo.name === 'content-script') {
+            return '[name].js';
+          }
+          return 'assets/[name]-[hash].js';
         },
       },
     },

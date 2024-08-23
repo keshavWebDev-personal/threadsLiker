@@ -1,17 +1,13 @@
 {
     "manifest_version": 3,
-    "version":"0.3.2",
+    "version":"0.3.3",
     "name": "threadsLiker",
     "description": "A Chrome extension to FullFill your Threads MSG IT Wing Sewa needs",
     "action":{
         "default_popup": "index.html"
     },
     "permissions":[
-        "scripting",
         "storage"
-    ],
-    "host_permissions": [
-        "https://www.threads.net/*"
     ],
     "icons": {
         "128": "threadsLiker_logo_128.png"
@@ -19,5 +15,11 @@
     "background":{
         "service_worker": "service-worker.js",
         "type": "module"
-    }
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://www.threads.net/*"],
+            "js": ["content-script.js"]
+        }
+    ]
 }
