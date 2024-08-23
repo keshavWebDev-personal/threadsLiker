@@ -42,9 +42,9 @@
         // Getting Likes Count and Likes Limit from Service Worker
         const res1 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes count" });
         const res2 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes limit" });
-        if (res1.failed || res2.failed) return
-        likesCount = res1.likes;
-        likesLimit = res2.likesLimit
+        
+        if (!res1.failed) likesCount = res1.likes;
+        if (!res2.failed) likesLimit = res2.likesLimit;
         
         // Getting Task Status from the Current Tab
         let [tab] = await chrome.tabs.query({active: true})
