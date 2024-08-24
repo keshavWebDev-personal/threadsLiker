@@ -24,3 +24,4 @@
 ## Stuff to Work On
 
 - [ ] A Start Button that Spaws All DSS Thread Profiles Tabs (in Browser) and Start doing the Likes Task on all Tabs
+- [ ] A way to Show Status Updates to UI 
