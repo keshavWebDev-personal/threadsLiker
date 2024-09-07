@@ -41,7 +41,7 @@
     window.onload = async () => {
         // Getting Likes Count and Likes Limit from Service Worker
         const res1 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes count" });
-        const res2 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes limit" });
+        const res2 = await chrome.runtime.sendMessage({ type: "data", title: "give me likes limit", default: likesLimit });
         
         if (!res1.failed) likesCount = res1.likes;
         if (!res2.failed) likesLimit = res2.likesLimit;
