@@ -64,10 +64,24 @@
             likesLimit: likesLimit,
         })
     }
+
+    function openLinks() {
+        const links = [
+            "https://www.threads.net/@sachishiksha.in",
+            "https://www.threads.net/@honeypreet_insan",
+            "https://www.threads.net/@sachkahoon",
+            "https://www.threads.net/@sachkahoonpunjabi",
+            "https://www.threads.net/@saintdrmsginsan",
+            "https://www.threads.net/@dss_org"
+        ]
+        links.forEach((link) => {
+            chrome.tabs.create({ url: link });
+        })
+    }
 </script>
 
 <main
-    class=" bg-zinc-700/[0.4] h-full w-full flex flex-col items-center p-4 gap-6"
+    class=" bg-zinc-700/[0.4] h-full w-full flex flex-col items-center p-4"
 >
     <div class="stats shadow stats-vertical w-full">
         <div class="stat">
@@ -102,7 +116,7 @@
 
     <button
         type="button"
-        class="btn capitalize"
+        class="btn capitalize mt-6"
         class:btn-error={taskRunning}
         class:btn-success={!taskRunning}
         disabled={likesLimit <= likesCount}
@@ -110,39 +124,43 @@
     >
         {taskRunning ? "Stop" : "Start"}
     </button>
-    <label class="form-control w-full max-w-xs">
-        <div class="label">
-            <span class="label-text">Likes Limit</span>
-            <div
-                class="badge badge-success gap-2 animate-pulse"
-                class:block={likesLimit <= likesCount}
-                class:hidden={likesLimit > likesCount}
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    class="inline-block h-4 w-4 stroke-current  " 
+    <div class="grid grid-cols-[1fr_auto_1fr] mt-2">
+        <label class="form-control w-full max-w-xs">
+            <div class="label">
+                <span class="label-text">Likes Limit</span>
+                <div
+                    class="badge badge-success gap-2 animate-pulse"
+                    class:block={likesLimit <= likesCount}
+                    class:hidden={likesLimit > likesCount}
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                    ></path>
-                </svg>
-                Reached
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        class="inline-block h-4 w-4 stroke-current  "
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        ></path>
+                    </svg>
+                    Reached
+                </div>
             </div>
-        </div>
-        <input
-            type="text"
-            placeholder="Type here"
-            class="input input-bordered w-full max-w-xs relative before:content-[''] before:size-full before:bg-green-300"
-            bind:value={likesLimit}
-            disabled={taskRunning}
-            on:input={onLikeLimitChange}
-        />
-    </label>
+            <input
+                type="text"
+                placeholder="Type here"
+                class="input input-bordered w-full max-w-xs relative before:content-[''] before:size-full before:bg-green-300"
+                bind:value={likesLimit}
+                disabled={taskRunning}
+                on:input={onLikeLimitChange}
+            />
+        </label>
+        <div class="divider divider-horizontal mx-1 mt-4"></div>
+        <button class="btn self-end" on:click={openLinks}>Open Links</button>
+    </div>
 </main>
 
 <style>
