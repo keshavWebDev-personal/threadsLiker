@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "version":"0.3.3-alpha",
+    "version":"0.3.3",
     "name": "threadsLiker",
     "description": "A Chrome extension to FullFill your Threads MSG IT Wing Sewa needs",
     "action":{
