@@ -2,6 +2,8 @@
     let likesCount = 0;
     let likesLimit = 50;
     let taskRunning = false;
+    let dialog: HTMLDialogElement;
+    $: dialog? (likesLimit <= likesCount) ? dialog.showModal() : dialog.close(): null
 
     async function handleClick() {
         if (taskRunning) {
@@ -128,26 +130,6 @@
         <label class="form-control w-full max-w-xs">
             <div class="label">
                 <span class="label-text">Likes Limit</span>
-                <div
-                    class="badge badge-success gap-2 animate-pulse"
-                    class:block={likesLimit <= likesCount}
-                    class:hidden={likesLimit > likesCount}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        class="inline-block h-4 w-4 stroke-current  "
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        ></path>
-                    </svg>
-                    Reached
-                </div>
             </div>
             <input
                 type="text"
@@ -162,6 +144,15 @@
         <button class="btn self-end" on:click={openLinks}>Open Links</button>
     </div>
 </main>
+<dialog bind:this={dialog} class="modal modal-bottom">
+    <div class="modal-box bg-successContent">
+    <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+    <h3 class="text-lg font-bold">Target Reach</h3>
+    <p class="py-4">reached the target of {likesLimit} likes</p>
+    </div>
+</dialog>
 
 <style>
     :global(body) {
